@@ -14,7 +14,7 @@ terraform.tfstate*
 
 ### Maven ###
 HELP.md
-target
+target/
 !mvnw
 !mvnw.cmd
 !.mvn/wrapper/*

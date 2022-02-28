@@ -13,6 +13,8 @@ unzip -q awscliv2.zip
 sudo aws/install -i /usr/local/aws-cli -b /usr/local/bin --update
 rm -rf awscliv2.zip aws/
 aws --version
+complete -C '/usr/local/bin/aws_completer' aws
+echo "complete -C '/usr/local/bin/aws_completer' aws" >> ~/.bashrc
 
 # AWS Configuration Multiple Profiles
 aws configure set aws_access_key_id XXXXXXXX --profile default
@@ -26,7 +28,8 @@ aws configure set aws_secret_access_key XXXXXXXX --profile prod
 
 
 # S3 Backend Manual Setup
-aws --profile dev s3 mb s3://wilton-terraform-state-backend --region sa-east-1
+aws --profile dev s3api create-bucket \
+    --bucket wilton-terraform-state-backend --create-bucket-configuration LocationConstraint=sa-east-1 --object-lock-enabled-for-bucket
 
 aws --profile dev s3api put-bucket-versioning \
     --bucket wilton-terraform-state-backend --versioning-configuration Status=Enabled
@@ -35,9 +38,9 @@ aws --profile dev s3api put-bucket-encryption \
     --bucket wilton-terraform-state-backend \
     --server-side-encryption-configuration '{"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}'
 
-aws --profile dev s3api put-object-lock-configuration \
+aws --profile dev s3api put-public-access-block \
     --bucket wilton-terraform-state-backend \
-    --object-lock-configuration '{"ObjectLockEnabled": "Enabled"}'
+    --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
 
 # Demo App Gradle
 curl -fsSL https://start.spring.io/starter.tgz \
@@ -59,5 +62,48 @@ curl -fsSL https://start.spring.io/starter.tgz \
   -d baseDir=demo-app \
   -d type=maven-project | tar -xzvf -
 
-docker run -it --rm -v $PWD/demo-app:/code -w/code  openjdk:11-jdk sh -c './mvnw package'
-docker run -it --rm -v $PWD/demo-app:/code -w/code  openjdk:11-jdk sh -c './gradlew build -i'
+# Gitignore
+cat <<'EOF'> demo-app/.gitignore
+!.gitignore
+### Code ###
+!src/**
+### Maven ###
+HELP.md
+target
+!mvnw
+!mvnw.cmd
+!.mvn/wrapper/*
+!settings.xml
+!pom.xml
+### Gradle ###
+HELP.md
+.gradle
+build/
+!gradlew
+!gradlew.bat
+!gradle/wrapper/*
+!init.gradle
+!settings.gradle
+!build.gradle
+EOF
+
+# Spring Properties as Env Variables
+cat <<'EOF'> demo-app/env.txt
+server_port=8080
+server_shutdown=graceful
+management_endpoints_web_exposure_include=health,info,prometheus
+EOF
+
+# Build with Gradle
+docker run --name builder -it --rm -v $PWD/demo-app:/code -w /code  openjdk:11-jdk sh -c './gradlew build -i'
+
+# Run and Test
+docker run --name demo-app -it --rm -p 8080:8080 -v $PWD/demo-app:/code -w /code --env-file=$PWD/demo-app/env.txt  openjdk:11-jre java -jar build/libs/demo-app-0.0.1-SNAPSHOT.jar
+curl -fsSL localhost:8080/actuator/health | jq
+
+# Build with Maven
+docker run --name builder -it --rm -v $PWD/demo-app:/code -w /code  openjdk:11-jdk sh -c './mvnw package'
+
+# Run and Test
+docker run --name demo-app -it --rm -p 8080:8080 -v $PWD/demo-app:/code -w /code --env-file=$PWD/demo-app/env.txt openjdk:11-jre java -jar target/demo-app-0.0.1-SNAPSHOT.jar
+curl -fsSL localhost:8080/actuator/health | jq
