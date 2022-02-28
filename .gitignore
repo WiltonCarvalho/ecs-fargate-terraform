@@ -1,18 +1,58 @@
-#*
+
+!.gitignore
+
+### Terraform ###
 .terraform*
 terraform.tfstate*
-!.gitignore
+
+### Docker ####
+!docker-compose.yml
+!Dockerfile
+
+### Code ###
 !src/**
+
+### Maven ###
+HELP.md
+target
 !mvnw
 !mvnw.cmd
 !.mvn/wrapper/*
 !settings.xml
 !pom.xml
+
+### Gradle ###
+HELP.md
+.gradle
+build/
 !gradlew
 !gradlew.bat
 !gradle/wrapper/*
 !init.gradle
 !settings.gradle
 !build.gradle
-!docker-compose.yml
-!Dockerfile
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
