@@ -1,0 +1,30 @@
+- name: 'nginx'
+  image: 'nginx:stable'
+  cpu: 64
+  memory: 128
+  memoryReservation: 128
+  essential: true
+  logConfiguration:
+    logDriver: awslogs
+    options:
+      awslogs-group: '/ecs/test-nginx-dev'
+      awslogs-region: 'sa-east-1'
+      awslogs-stream-prefix: ecs
+  entryPoint:
+    - '/bin/sh'
+    - '-c'
+  command:
+    - |
+      cat <<'EOF'> /etc/nginx/conf.d/default.conf
+      server_tokens off;
+      server {
+        listen 80;
+        server_name  _;
+        location / {
+          default_type text/plain;
+          expires -1;
+          return 200 'Client address: $remote_addr $http_x_forwarded_for\nServer address: $server_addr:$server_port\nServer name: $hostname\nDate: $time_local\nURI: $request_uri\nRequest ID: $request_id\n';
+        }
+      }
+      EOF
+      exec nginx -g 'daemon off;'

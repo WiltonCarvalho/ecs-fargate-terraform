@@ -1,6 +1,6 @@
 resource "aws_security_group" "this" {
   vpc_id      = "${var.vpc_id}"
-  name_prefix = "${var.ecs_service}-${var.environment}_"
+  name_prefix = "${var.environment}-${var.ecs_service}_"
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
     from_port   = 80
@@ -14,6 +14,6 @@ resource "aws_security_group" "this" {
     protocol    = "-1"
   }
   tags = {
-    Name = "${var.ecs_service}-${var.environment}"
+    Name = "${var.environment}-${var.ecs_service}"
   }
 }

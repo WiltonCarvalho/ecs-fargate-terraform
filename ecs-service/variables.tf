@@ -32,3 +32,11 @@ variable "ecs_container_name" {
   description = "The ECS Container"
   default     = "nginx"
 }
+
+variable "fargate_public_ip" {
+  default     = "false"
+}
+
+variable "load_balancer_public" {
+  default     = "false"
+}

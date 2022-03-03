@@ -98,12 +98,26 @@ EOF
 docker run --name builder -it --rm -v $PWD/demo-app:/code -w /code  openjdk:11-jdk sh -c './gradlew build -i'
 
 # Run and Test
-docker run --name demo-app -it --rm -p 8080:8080 -v $PWD/demo-app:/code -w /code --env-file=$PWD/demo-app/env.txt  openjdk:11-jre java -jar build/libs/demo-app-0.0.1-SNAPSHOT.jar
+docker run --name demo-app -it --rm \
+  -p 8080:8080 \
+  -v $PWD/demo-app:/code \
+  -w /code \
+  --env-file=$PWD/demo-app/env.txt \
+  openjdk:11-jre \
+  java -jar build/libs/demo-app-0.0.1-SNAPSHOT.jar
+
 curl -fsSL localhost:8080/actuator/health | jq
 
 # Build with Maven
 docker run --name builder -it --rm -v $PWD/demo-app:/code -w /code  openjdk:11-jdk sh -c './mvnw package'
 
 # Run and Test
-docker run --name demo-app -it --rm -p 8080:8080 -v $PWD/demo-app:/code -w /code --env-file=$PWD/demo-app/env.txt openjdk:11-jre java -jar target/demo-app-0.0.1-SNAPSHOT.jar
+docker run --name demo-app -it --rm \
+  -p 8080:8080 \
+  -v $PWD/demo-app:/code \
+  -w /code \
+  --env-file=$PWD/demo-app/env.txt \
+  openjdk:11-jre \
+  java -jar target/demo-app-0.0.1-SNAPSHOT.jar
+
 curl -fsSL localhost:8080/actuator/health | jq
