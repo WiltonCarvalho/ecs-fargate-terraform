@@ -28,3 +28,15 @@ resource "aws_lb_listener" "internal-http" {
     }
   }
 }
+
+data "dns_a_record_set" "internal_dns_name" {
+  host = aws_lb.internal.dns_name
+}
+
+output "internal_dns_name" {
+  value = aws_lb.internal.dns_name
+}
+
+output "internal_dns_addrs" {
+  value = join(",", data.dns_a_record_set.internal_dns_name.addrs)
+}

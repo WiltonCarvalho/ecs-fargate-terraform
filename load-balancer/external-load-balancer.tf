@@ -29,3 +29,15 @@ resource "aws_lb_listener" "external-http" {
     }
   }
 }
+
+data "dns_a_record_set" "external_dns_name" {
+  host = aws_lb.external.dns_name
+}
+
+output "external_dns_name" {
+  value = aws_lb.external.dns_name
+}
+
+output "external_dns_addrs" {
+  value = join(",", data.dns_a_record_set.external_dns_name.addrs)
+}

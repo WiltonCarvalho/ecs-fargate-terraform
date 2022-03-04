@@ -11,8 +11,8 @@ resource "aws_ecs_service" "this" {
     scheduling_strategy                = "REPLICA"
     task_definition                    = aws_ecs_task_definition.this.arn
     deployment_circuit_breaker {
-        enable   = false
-        rollback = false
+        enable   = true
+        rollback = true
     }
     network_configuration {
         assign_public_ip = "${var.fargate_public_ip == "true" ? true : false}"
@@ -23,7 +23,7 @@ resource "aws_ecs_service" "this" {
     }
     load_balancer {
         container_name   = "${var.ecs_container_name}"
-        container_port   = 80
+        container_port   = var.ecs_container_port
         target_group_arn = aws_lb_target_group.this.arn
     }
 }
@@ -54,6 +54,7 @@ resource "aws_lb_target_group" "this" {
     health_check {
         path = "/"
     }
+    deregistration_delay = 30
 }
 
 resource "aws_lb_listener_rule" "http" {

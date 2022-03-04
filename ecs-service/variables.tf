@@ -33,10 +33,15 @@ variable "ecs_container_name" {
   default     = "nginx"
 }
 
+variable "ecs_container_port" {
+  description = "The ECS Container Port"
+  default     = 8080
+}
+
 variable "fargate_public_ip" {
-  default     = "false"
+  default     = "true"
 }
 
 variable "load_balancer_public" {
-  default     = "false"
+  default     = "true"
 }

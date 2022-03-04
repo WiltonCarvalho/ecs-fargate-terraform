@@ -26,20 +26,24 @@ resource "aws_ecs_task_definition" "this" {
       memoryReservation = 128
       portMappings = [
         {
-          containerPort = 80
-          hostPort      = 80
-        },
-        {
-          containerPort = 443
-          hostPort      = 443
+          containerPort = var.ecs_container_port
+          hostPort      = var.ecs_container_port
         }
       ]
+      healthCheck = {
+        retries     = 10
+        command     = [ "CMD-SHELL", "curl -fsSL -H 'User-Agent: HealthCheck' http://localhost:${var.ecs_container_port}/ || exit 1" ]
+        timeout     = 5
+        interval    = 10
+        startPeriod = 30
+      }
+      entryPoint = ["/bin/sh", "-c"]
       command = [
         <<-EOT
           cat <<'EOF'> /etc/nginx/conf.d/default.conf
           server_tokens off;
           server {
-            listen 80;
+            listen 8080;
             server_name _;
             location / {
               default_type text/plain;
@@ -51,7 +55,6 @@ resource "aws_ecs_task_definition" "this" {
           exec nginx -g 'daemon off;'
         EOT
       ]
-      entryPoint = ["/bin/sh", "-c"]
       logConfiguration = {
         logDriver = "awslogs"
         options = {
